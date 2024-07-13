@@ -1,7 +1,7 @@
 #include "nothanks.h"
 
-bool always(gamestate_t gs, int player, int card) { return false; }
-bool never(gamestate_t gs, int player, int card) { return true; }
+bool always_takes_card(gamestate_t gs, int player, int card) { return false; }
+bool always_no_thanks(gamestate_t gs, int player, int card) { return true; }
 
 bool ratio_2_strat(gamestate_t gs, int player, int card)
 {
