@@ -9,15 +9,22 @@
 #include "nothanks.h"
 #include "strats.cpp"
 
-int score(u64 hand)
+int score_of_hand(u64 hand)
 {
     hand = hand & ~(hand << 1);
     int total = 0;
-    for(int i = 3; i < 35; i++)
-        if((hand >> i) & 1)
+    for (int i = 3; i < 35; i++)
+        if ((hand >> i) & 1)
             total += i;
 
     return total;
+}
+
+std::tuple<int, int> evaluate_game(gamestate_t gs)
+{
+    int p0score = score_of_hand(gs.cards[0]) - gs.pennies[0];
+    int p1score = score_of_hand(gs.cards[1]) - gs.pennies[1];
+    return std::make_tuple(p0score, p1score);
 }
 
 std::tuple<int, int> play(Strategy fp1, Strategy fp2)
@@ -57,7 +64,7 @@ std::tuple<int, int> play(Strategy fp1, Strategy fp2)
         p ^= 1;
     }
 
-    return std::make_tuple(score(gs.cards[0]), score(gs.cards[1]));
+    return evaluate_game(gs);
 }
 
 float compare(Strategy fp1, Strategy fp2, int games = 10000)
