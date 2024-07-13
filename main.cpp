@@ -82,6 +82,10 @@ float compare(Strategy fp1, Strategy fp2, int games = 10000)
 
 int main(int argc, char **argv)
 {
-    auto score = compare(ratio_2_strat, ratio_3_strat);
-    printf("score = %f\n", score);
+    for (auto [n1, p1] : strats)
+        for (auto [n2, p2] : strats)
+        {
+            auto score = compare(p1, p2);
+            printf("%s vs %s: %f\n", n1, n2, score);
+        }
 }
