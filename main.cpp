@@ -11,15 +11,13 @@
 
 int score(u64 hand)
 {
-    int s = 0;
-    for (int i = 3; i <= 35; i++)
-    {
-        bool hasi = (hand >> i) & 1;
-        bool hasj = (hand >> (i - 1)) & 1;
-        if (hasi && !hasj)
-            s += i;
-    }
-    return s;
+    hand = hand & ~(hand << 1);
+    int total = 0;
+    for(int i = 3; i < 35; i++)
+        if((hand >> i) & 1)
+            total += i;
+
+    return total;
 }
 
 std::tuple<int, int> play(Strategy fp1, Strategy fp2)
@@ -62,28 +60,21 @@ std::tuple<int, int> play(Strategy fp1, Strategy fp2)
     return std::make_tuple(score(gs.cards[0]), score(gs.cards[1]));
 }
 
-int compare(Strategy fp1, Strategy fp2, int games = 10000)
+float compare(Strategy fp1, Strategy fp2, int games = 10000)
 {
+    int n = games;
     int score = 0;
     while (games--)
     {
-        auto [a, b] = play(ratio_2_strat, ratio_3_strat);
+        auto [a, b] = play(fp1, fp2);
         score += a < b;
         score -= a > b;
     }
-    return score;
+    return (float)score / n;
 }
 
 int main(int argc, char **argv)
 {
-    int wins = 0;
-    int ties = 0;
-    int games = 10000;
-    for (int i = 0; i < games; i++)
-    {
-        auto [a, b] = play(ratio_2_strat, ratio_3_strat);
-        wins += a < b;
-        ties += a == b;
-    }
-    printf("%d/%d (ties=%d)\n", wins, games, ties);
+    auto score = compare(ratio_2_strat, ratio_3_strat);
+    printf("score = %f\n", score);
 }
