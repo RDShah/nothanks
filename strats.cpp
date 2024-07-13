@@ -3,6 +3,8 @@
 bool always_takes_card(gamestate_t gs, int player, int card) { return false; }
 bool always_no_thanks(gamestate_t gs, int player, int card) { return true; }
 
+bool high_cards_are_scary(gamestate_t gs, int player, int card) { return card > 31; }
+
 bool ratio_2_strat(gamestate_t gs, int player, int card)
 {
     return card > 2 * gs.pennies[2];
@@ -23,9 +25,9 @@ bool ratio_21_to_1_strat(gamestate_t gs, int player, int card)
 
 #define named_strat(strat) std::make_tuple(#strat, strat)
 auto strats = {
-    named_strat(always_no_thanks),
+    // named_strat(always_no_thanks),
     named_strat(always_takes_card),
-    named_strat(ratio_2_strat),
-    named_strat(ratio_3_strat),
-    named_strat(ratio_21_to_1_strat)
-};
+    // named_strat(ratio_2_strat),
+    // named_strat(ratio_3_strat),
+    // named_strat(ratio_21_to_1_strat)
+    named_strat(high_cards_are_scary)};
