@@ -1,36 +1,31 @@
 #include <algorithm>
+#include <array>
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <random>
 #include <tuple>
-#include <array>
 
 typedef uint64_t u64;
 
-struct gamestate_t
-{
+struct gamestate_t {
     u64 cards[3];
     uint8_t pennies[4];
 };
 
 typedef bool Strategy(gamestate_t, int, int);
 
-bool ratio_2_strat(gamestate_t gs, int player, int card)
-{
+bool ratio_2_strat(gamestate_t gs, int player, int card) {
     return card > 2 * gs.pennies[2];
 }
 
-bool ratio_3_strat(gamestate_t gs, int player, int card)
-{
+bool ratio_3_strat(gamestate_t gs, int player, int card) {
     return card > 3 * gs.pennies[2];
 }
 
-int score(u64 hand)
-{
+int score(u64 hand) {
     int s = 0;
-    for (int i = 3; i <= 35; i++)
-    {
+    for (int i = 3; i <= 35; i++) {
         bool hasi = (hand >> i) & 1;
         bool hasj = (hand >> (i - 1)) & 1;
         if (hasi && !hasj)
@@ -39,38 +34,29 @@ int score(u64 hand)
     return s;
 }
 
-std::tuple<int, int> play(Strategy fp1, Strategy fp2)
-{
+std::tuple<int, int> play(Strategy fp1, Strategy fp2) {
     std::random_device rd;
     std::mt19937 g(rd());
 
     gamestate_t gs = {
-        .cards = {0, 0, 0},
+        .cards = {0, 0, 0b111111111111111111111111111111111000L},
         .pennies = {11, 11, 0},
     };
 
-    for (int i = 3; i <= 35; i++)
-        gs.cards[2] ^= 1 << i;
-
-    int deck[] = {3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
-                  14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24,
-                  25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35};
-    std::shuffle((int *)deck, (int *)(deck + 33), g);
+    std::array<uint8_t, 33> deck;
+    std::iota(deck.begin(), deck.end(), 3);
+    std::ranges::shuffle(deck, g);
 
     int p = 0;
     int idx = 32;
 
-    while (idx > 8)
-    {
+    while (idx > 8) {
         int offer = deck[idx];
         bool nothanks = (*(p ? fp1 : fp2))(gs, p, offer);
-        if (nothanks && gs.pennies[p])
-        {
+        if (nothanks && gs.pennies[p]) {
             gs.pennies[p] -= 1;
             gs.pennies[2] += 1;
-        }
-        else
-        {
+        } else {
             gs.cards[p] ^= (1 << offer);
             gs.cards[2] ^= (1 << offer);
             gs.pennies[p] += gs.pennies[2];
@@ -80,11 +66,17 @@ std::tuple<int, int> play(Strategy fp1, Strategy fp2)
         p ^= 1;
     }
 
-    return std::tuple<int, int>(score(gs.cards[0]), score(gs.cards[1]));
+    return std::make_tuple(score(gs.cards[0]), score(gs.cards[1]));
 }
 
-int main(int argc, char **argv)
-{
-    auto [a, b] = play(ratio_2_strat, ratio_3_strat);
-    printf("%d %d\n", a, b);
+int main(int argc, char **argv) {
+    int wins = 0;
+    int ties = 0;
+    int games = 10000;
+    for (int i = 0; i < games; i++) {
+        auto [a, b] = play(ratio_2_strat, ratio_3_strat);
+        wins += a < b;
+        ties += a == b;
+    }
+    printf("%d/%d (ties=%d)\n", wins, games, ties);
 }
