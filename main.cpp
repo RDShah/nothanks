@@ -4,6 +4,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <random>
+#include <ranges>
 #include <tuple>
 
 typedef uint64_t u64;
@@ -14,6 +15,9 @@ struct gamestate_t {
 };
 
 typedef bool Strategy(gamestate_t, int, int);
+
+bool always(gamestate_t gs, int player, int card) { return false; }
+bool never(gamestate_t gs, int player, int card) { return true; }
 
 bool ratio_2_strat(gamestate_t gs, int player, int card) {
     return card > 2 * gs.pennies[2];
