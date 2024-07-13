@@ -6,30 +6,14 @@
 #include <random>
 #include <ranges>
 #include <tuple>
+#include "nothanks.h"
+#include "strats.cpp"
 
-typedef uint64_t u64;
-
-struct gamestate_t {
-    u64 cards[3];
-    uint8_t pennies[4];
-};
-
-typedef bool Strategy(gamestate_t, int, int);
-
-bool always(gamestate_t gs, int player, int card) { return false; }
-bool never(gamestate_t gs, int player, int card) { return true; }
-
-bool ratio_2_strat(gamestate_t gs, int player, int card) {
-    return card > 2 * gs.pennies[2];
-}
-
-bool ratio_3_strat(gamestate_t gs, int player, int card) {
-    return card > 3 * gs.pennies[2];
-}
-
-int score(u64 hand) {
+int score(u64 hand)
+{
     int s = 0;
-    for (int i = 3; i <= 35; i++) {
+    for (int i = 3; i <= 35; i++)
+    {
         bool hasi = (hand >> i) & 1;
         bool hasj = (hand >> (i - 1)) & 1;
         if (hasi && !hasj)
@@ -38,7 +22,8 @@ int score(u64 hand) {
     return s;
 }
 
-std::tuple<int, int> play(Strategy fp1, Strategy fp2) {
+std::tuple<int, int> play(Strategy fp1, Strategy fp2)
+{
     std::random_device rd;
     std::mt19937 g(rd());
 
@@ -54,13 +39,17 @@ std::tuple<int, int> play(Strategy fp1, Strategy fp2) {
     int p = 0;
     int idx = 32;
 
-    while (idx > 8) {
+    while (idx > 8)
+    {
         int offer = deck[idx];
         bool nothanks = (*(p ? fp1 : fp2))(gs, p, offer);
-        if (nothanks && gs.pennies[p]) {
+        if (nothanks && gs.pennies[p])
+        {
             gs.pennies[p] -= 1;
             gs.pennies[2] += 1;
-        } else {
+        }
+        else
+        {
             gs.cards[p] ^= (1 << offer);
             gs.cards[2] ^= (1 << offer);
             gs.pennies[p] += gs.pennies[2];
@@ -73,11 +62,25 @@ std::tuple<int, int> play(Strategy fp1, Strategy fp2) {
     return std::make_tuple(score(gs.cards[0]), score(gs.cards[1]));
 }
 
-int main(int argc, char **argv) {
+int compare(Strategy fp1, Strategy fp2, int games = 10000)
+{
+    int score = 0;
+    while (games--)
+    {
+        auto [a, b] = play(ratio_2_strat, ratio_3_strat);
+        score += a < b;
+        score -= a > b;
+    }
+    return score;
+}
+
+int main(int argc, char **argv)
+{
     int wins = 0;
     int ties = 0;
     int games = 10000;
-    for (int i = 0; i < games; i++) {
+    for (int i = 0; i < games; i++)
+    {
         auto [a, b] = play(ratio_2_strat, ratio_3_strat);
         wins += a < b;
         ties += a == b;
