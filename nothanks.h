@@ -31,6 +31,11 @@ struct gamestate_t {
      * pennies[2] = number of pennies in the middle
      */
     uint8_t pennies[3];
+
+    /**
+     * the card being offered
+     */
+    uint8_t offer;
 };
 
-typedef bool Strategy(gamestate_t, int, int);
+typedef bool Strategy(gamestate_t, int);

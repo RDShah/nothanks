@@ -46,8 +46,8 @@ std::tuple<int, int> play(Strategy fp1, Strategy fp2)
 
     while (idx > 8)
     {
-        int offer = deck[idx];
-        bool nothanks = (*(p ? fp1 : fp2))(gs, p, offer);
+        gs.offer = deck[idx];
+        bool nothanks = (*(p ? fp1 : fp2))(gs, p);
         if (nothanks && gs.pennies[p])
         {
             gs.pennies[p] -= 1;
@@ -55,8 +55,8 @@ std::tuple<int, int> play(Strategy fp1, Strategy fp2)
         }
         else
         {
-            gs.cards[p] ^= (1 << offer);
-            gs.cards[2] ^= (1 << offer);
+            gs.cards[p] ^= (1 << gs.offer);
+            gs.cards[2] ^= (1 << gs.offer);
             gs.pennies[p] += gs.pennies[2];
             gs.pennies[2] = 0;
             idx--;
