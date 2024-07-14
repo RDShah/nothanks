@@ -27,7 +27,7 @@ std::tuple<int, int> evaluate_game(gamestate_t gs)
     return std::make_tuple(p0score, p1score);
 }
 
-std::tuple<int, int> play(Strategy fp1, Strategy fp2)
+std::tuple<int, int> play(Strategy fp0, Strategy fp1)
 {
     std::random_device rd;
     std::mt19937 g(rd());
@@ -47,7 +47,7 @@ std::tuple<int, int> play(Strategy fp1, Strategy fp2)
     while (idx > 8)
     {
         gs.offer = deck[idx];
-        bool nothanks = (*(p ? fp1 : fp2))(gs, p);
+        bool nothanks = (*(p ? fp1 : fp0))(gs, p);
         if (nothanks && gs.pennies[p])
         {
             gs.pennies[p] -= 1;
@@ -67,13 +67,13 @@ std::tuple<int, int> play(Strategy fp1, Strategy fp2)
     return evaluate_game(gs);
 }
 
-float compare(Strategy fp1, Strategy fp2, int games = 10000)
+float compare(Strategy fp0, Strategy fp1, int games = 10000)
 {
     int n = games;
     int score = 0;
     while (games--)
     {
-        auto [a, b] = play(fp1, fp2);
+        auto [a, b] = play(fp0, fp1);
         score += a < b;
         score -= a > b;
     }
@@ -82,10 +82,10 @@ float compare(Strategy fp1, Strategy fp2, int games = 10000)
 
 int main(int argc, char **argv)
 {
-    for (auto [n1, p1] : strats)
-        for (auto [n2, p2] : strats)
+    for (auto [n0, p0] : strats)
+        for (auto [n1, p1] : strats)
         {
-            auto score = compare(p1, p2);
-            printf("%s vs %s: %f\n", n1, n2, score);
+            auto score = compare(p0, p1);
+            printf("%s vs %s: %f\n", n0, n1, score);
         }
 }
