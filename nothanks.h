@@ -38,4 +38,7 @@ struct gamestate_t {
     uint8_t offer;
 };
 
+#define NO_THANKS true
+#define YES_PLEASE false
+
 typedef bool Strategy(gamestate_t, int);
