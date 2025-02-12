@@ -13,7 +13,7 @@ int score_of_hand(u64 hand)
 {
     hand = hand & ~(hand << 1);
     int total = 0;
-    for (int i = 3; i < 35; i++)
+    for (int i = 3; i <= 35; i++)
         if ((hand >> i) & 1)
             total += i;
 
@@ -33,7 +33,7 @@ std::tuple<int, int> play(Strategy fp0, Strategy fp1)
     std::mt19937 g(rd());
 
     gamestate_t gs = {
-        .cards = {0, 0, 0b111111111111111111111111111111111000L},
+        .cards = {0, 0, 0b111111111111111111111111111111111000ul},
         .pennies = {11, 11, 0},
     };
 
@@ -47,16 +47,16 @@ std::tuple<int, int> play(Strategy fp0, Strategy fp1)
     while (idx > 8)
     {
         gs.offer = deck[idx];
-        bool nothanks = (*(p ? fp1 : fp0))(gs, p);
-        if (nothanks && gs.pennies[p])
+        auto decision = (*(p ? fp1 : fp0))(gs, p);
+        if (decision == NO_THANKS && gs.pennies[p])
         {
             gs.pennies[p] -= 1;
             gs.pennies[2] += 1;
         }
         else
         {
-            gs.cards[p] ^= (1 << gs.offer);
-            gs.cards[2] ^= (1 << gs.offer);
+            gs.cards[p] ^= (1ul << gs.offer);
+            gs.cards[2] ^= (1ul << gs.offer);
             gs.pennies[p] += gs.pennies[2];
             gs.pennies[2] = 0;
             idx--;
@@ -82,10 +82,14 @@ float compare(Strategy fp0, Strategy fp1, int games = 10000)
 
 int main(int argc, char **argv)
 {
-    for (auto [n0, p0] : strats)
-        for (auto [n1, p1] : strats)
-        {
-            auto score = compare(p0, p1);
-            printf("%s vs %s: %f\n", n0, n1, score);
-        }
+    auto [a, b] = play(ratio_3_strat, human);
+    printf("p1 score: %d\n", a);
+    printf("p2 score: %d\n", b);
+
+    // for (auto [n0, p0] : strats)
+    //     for (auto [n1, p1] : strats)
+    //     {
+    //         auto score = compare(p0, p1);
+    //         printf("%s vs %s: %f\n", n0, n1, score);
+    //     }
 }

@@ -1,6 +1,22 @@
+#include <iostream>
+using namespace std;
+
 #include "nothanks.h"
 
-bool always_takes_card(gamestate_t gs, int player) { return YES_PLEASE; }
+bool human(gamestate_t gs, int player)
+{
+    std::string x;
+    gs.print_state();
+    printf("Take the card? ");
+    cin >> x;
+    printf("\n");
+    return (x == "n") ? NO_THANKS : YES_PLEASE;
+}
+
+bool always_takes_card(gamestate_t gs, int player)
+{
+    return YES_PLEASE;
+}
 bool always_no_thanks(gamestate_t gs, int player) { return NO_THANKS; }
 
 bool high_cards_are_scary(gamestate_t gs, int player) { return gs.offer > 31 ? NO_THANKS : YES_PLEASE; }

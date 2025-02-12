@@ -16,15 +16,16 @@
  */
 typedef uint64_t u64;
 
-struct gamestate_t {
-    
+struct gamestate_t
+{
+
     /**
      * cards[0] = hand of player 0
      * cards[1] = hand of player 1
      * cards[2] = set of cards still in deck
      */
     u64 cards[3];
-    
+
     /**
      * pennies[0] = number of pennies held by player 0
      * pennies[1] = number of pennies held by player 1
@@ -36,6 +37,11 @@ struct gamestate_t {
      * the card being offered
      */
     uint8_t offer;
+
+    bool p1_has_card(int j);
+    bool p2_has_card(int j);
+    bool no_one_has_card(int j);
+    void print_state();
 };
 
 #define NO_THANKS true
