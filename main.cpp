@@ -52,6 +52,7 @@ std::tuple<int, int> play(Strategy fp0, Strategy fp1)
         {
             gs.pennies[p] -= 1;
             gs.pennies[2] += 1;
+            p ^= 1;
         }
         else
         {
@@ -61,7 +62,6 @@ std::tuple<int, int> play(Strategy fp0, Strategy fp1)
             gs.pennies[2] = 0;
             idx--;
         }
-        p ^= 1;
     }
 
     return evaluate_game(gs);
