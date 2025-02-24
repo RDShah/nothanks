@@ -38,10 +38,9 @@ struct gamestate_t
      */
     uint8_t offer;
 
-    bool p1_has_card(int j);
-    bool p2_has_card(int j);
-    bool no_one_has_card(int j);
-    void print_state();
+    bool has(int p, int j);
+    void print();
+    int num_cards_left();
 };
 
 #define NO_THANKS true

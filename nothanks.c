@@ -1,25 +1,21 @@
 #include "nothanks.h"
 
-bool gamestate_t::p1_has_card(int j)
+bool gamestate_t::has(int p, int j)
 {
-    return (this->cards[0] >> j) & 1;
-}
-bool gamestate_t::p2_has_card(int j)
-{
-    return (this->cards[1] >> j) & 1;
+    return (this->cards[p] >> j) & 1;
 }
 
-bool gamestate_t::no_one_has_card(int j)
+int gamestate_t::num_cards_left()
 {
-    return (this->cards[2] >> j) & 1;
+    return std::popcount(this->cards[2]);
 }
 
-void gamestate_t::print_state() {
+void gamestate_t::print() {
     printf("P1 ");
     printf("(pennies: %d) cards: ", this->pennies[0]);
     for (auto i = 3; i <= 35; i++)
     {
-        if (this->p1_has_card(i))
+        if (this->has(0, i))
             printf("%d, ", i);
     }
     printf("\n");
@@ -27,7 +23,7 @@ void gamestate_t::print_state() {
     printf("(pennies: %d) cards: ", this->pennies[1]);
     for (auto i = 3; i <= 35; i++)
     {
-        if (this->p2_has_card(i))
+        if (this->has(1, i))
             printf("%d, ", i);
     }
     printf("\n");

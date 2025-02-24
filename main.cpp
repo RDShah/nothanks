@@ -75,21 +75,26 @@ float compare(Strategy fp0, Strategy fp1, int games = 10000)
     {
         auto [a, b] = play(fp0, fp1);
         score += a < b;
-        score -= a > b;
     }
     return (float)score / n;
 }
 
 int main(int argc, char **argv)
 {
-    auto [a, b] = play(ratio_3_strat, human);
-    printf("p1 score: %d\n", a);
-    printf("p2 score: %d\n", b);
+    // auto [a, b] = play(ratio_3_strat, human);
+    // printf("p1 score: %d\n", a);
+    // printf("p2 score: %d\n", b);
 
-    // for (auto [n0, p0] : strats)
-    //     for (auto [n1, p1] : strats)
-    //     {
-    //         auto score = compare(p0, p1);
-    //         printf("%s vs %s: %f\n", n0, n1, score);
-    //     }
+    for (auto [n0, p0] : strats)
+    {
+        // auto score = compare(hand_crafted, p0);
+        // printf("hand_crafted beats %s w.p. %f\n", n0, score);
+        // score = compare(hand_crafted2, p0);
+        // printf("hand_crafted2 beats %s w.p. %f\n", n0, score);
+        for (auto [n1, p1] : strats)
+        {
+            auto score = compare(p0, p1);
+            printf("%s beats %s w.p. %f\n", n0, n1, score);
+        }
+    }
 }

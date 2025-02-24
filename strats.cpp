@@ -6,7 +6,7 @@ using namespace std;
 bool human(gamestate_t gs, int player)
 {
     std::string x;
-    gs.print_state();
+    gs.print();
     printf("Take the card? ");
     cin >> x;
     printf("\n");
@@ -21,57 +21,56 @@ bool always_no_thanks(gamestate_t gs, int player) { return NO_THANKS; }
 
 bool high_cards_are_scary(gamestate_t gs, int player) { return gs.offer > 31 ? NO_THANKS : YES_PLEASE; }
 
-bool ratio_2_strat(gamestate_t gs, int player)
+bool ratio_x_strat(float x, gamestate_t gs, int player)
 {
-    return gs.offer > 2 * gs.pennies[2] ? NO_THANKS : YES_PLEASE;
+    return gs.offer > x * gs.pennies[2] ? NO_THANKS : YES_PLEASE;
 }
 
-bool ratio_3_strat(gamestate_t gs, int player)
+bool ratio_5_strat(gamestate_t gs, int p)
 {
-    return gs.offer > 3 * gs.pennies[2] ? NO_THANKS : YES_PLEASE;
+    return ratio_x_strat(5, gs, p);
 }
 
-bool ratio_11_to_1_strat(gamestate_t gs, int player)
+bool ratio_lerp_x_strat(float hi, gamestate_t gs, int player)
 {
-    int cardsleft = std::popcount(gs.cards[2]);
-    float frac = (float)(cardsleft - 9.0) / (33.0 - 9.0);
-    float pennyvalue = 1 + 10 * frac;
-    return gs.offer > pennyvalue * gs.pennies[2] ? NO_THANKS : YES_PLEASE;
+    float frac = (gs.num_cards_left() - 9.0) / (33.0 - 9.0);
+    return ratio_x_strat(1 + (hi - 1) * frac, gs, player);
 }
 
-bool ratio_21_to_1_strat(gamestate_t gs, int player)
+bool ratio_lerp_11_strat(gamestate_t gs, int player)
 {
-    int cardsleft = std::popcount(gs.cards[2]);
-    float frac = (float)(cardsleft - 9.0) / (33.0 - 9.0);
-    float pennyvalue = 1 + 20 * frac;
-    return gs.offer > pennyvalue * gs.pennies[2] ? NO_THANKS : YES_PLEASE;
+    return ratio_lerp_x_strat(11, gs, player);
 }
 
-bool take_runs_and_small_cards(gamestate_t gs, int player)
+bool hand_crafted(gamestate_t gs, int p)
 {
     int card = gs.offer;
-    if (card < 17)
-        return YES_PLEASE;
-    if ((gs.cards[player] >> (card + 1)) & 1 ||
-        (gs.cards[player] >> (card - 1)) & 1)
+    if (!gs.has(2, card + 1) && !gs.has(2, card - 1))
     {
         return YES_PLEASE;
     }
-    if (card < 30 && gs.pennies[2] > 2)
-    {
-        return YES_PLEASE;
-    }
-    return card > 3 * gs.pennies[2] ? NO_THANKS : YES_PLEASE;
+
+    // if (gs.has(p, card + 1))
+    // {
+    //     return ratio_x_strat(10, gs, p);
+    // }
+
+    // if (gs.has(p, card - 1))
+    // {
+    //     return ratio_x_strat(8, gs, p);
+    // }
+
+    return ratio_lerp_x_strat(11, gs, p);
 }
 
 #define named_strat(strat) std::make_tuple(#strat, strat)
 auto strats = {
     // named_strat(always_no_thanks),
     // named_strat(always_takes_card),
-    // named_strat(ratio_2_strat),
-    named_strat(ratio_3_strat),
-    named_strat(ratio_21_to_1_strat),
-    named_strat(ratio_11_to_1_strat),
-    // named_strat(high_cards_are_scary)
-    named_strat(take_runs_and_small_cards),
+    // named_strat(ratio_5_strat),
+    // named_strat(ratio_21_to_1_strat),
+    named_strat(ratio_lerp_11_strat),
+    // named_strat(high_cards_are_scary),
+    named_strat(hand_crafted),
+    // named_strat(hand_crafted2),
 };
