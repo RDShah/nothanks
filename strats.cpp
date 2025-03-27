@@ -23,7 +23,7 @@ bool high_cards_are_scary(gamestate_t gs, int player) { return gs.offer > 31 ? N
 
 bool ratio_x_strat(float x, gamestate_t gs, int player)
 {
-    return gs.offer > x * gs.pennies[2] ? NO_THANKS : YES_PLEASE;
+    return gs.offer > x * gs.pennies[IN_CENTER] ? NO_THANKS : YES_PLEASE;
 }
 
 bool ratio_5_strat(gamestate_t gs, int p)
@@ -45,7 +45,7 @@ bool ratio_lerp_11_strat(gamestate_t gs, int player)
 bool hand_crafted(gamestate_t gs, int p)
 {
     int card = gs.offer;
-    if (!gs.has(2, card + 1) && !gs.has(2, card - 1))
+    if (!gs.has(IN_CENTER, card + 1) && !gs.has(IN_CENTER, card - 1))
     {
         return YES_PLEASE;
     }

@@ -43,7 +43,11 @@ struct gamestate_t
     int num_cards_left();
 };
 
-#define NO_THANKS true
-#define YES_PLEASE false
+#define NO_THANKS (true)
+#define YES_PLEASE (false)
+
+#define IN_CENTER (2)
+#define PLAYER_A (0) 
+#define PLAYER_B (1)
 
 typedef bool Strategy(gamestate_t, int);

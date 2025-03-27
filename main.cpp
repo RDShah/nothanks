@@ -41,25 +41,25 @@ std::tuple<int, int> play(Strategy fp0, Strategy fp1)
     std::iota(deck.begin(), deck.end(), 3);
     std::ranges::shuffle(deck, g);
 
-    int p = 0;
+    int player = PLAYER_A;
     int idx = 32;
 
     while (idx > 8)
     {
         gs.offer = deck[idx];
-        auto decision = (*(p ? fp1 : fp0))(gs, p);
-        if (decision == NO_THANKS && gs.pennies[p])
+        auto decision = (*(player ? fp1 : fp0))(gs, player);
+        if (decision == NO_THANKS && gs.pennies[player])
         {
-            gs.pennies[p] -= 1;
-            gs.pennies[2] += 1;
-            p ^= 1;
+            gs.pennies[player] -= 1;
+            gs.pennies[IN_CENTER] += 1;
+            player = player == PLAYER_A ? PLAYER_B : PLAYER_A;
         }
         else
         {
-            gs.cards[p] ^= (1ul << gs.offer);
-            gs.cards[2] ^= (1ul << gs.offer);
-            gs.pennies[p] += gs.pennies[2];
-            gs.pennies[2] = 0;
+            gs.cards[player] ^= (1ul << gs.offer);
+            gs.cards[IN_CENTER] ^= (1ul << gs.offer);
+            gs.pennies[player] += gs.pennies[IN_CENTER];
+            gs.pennies[IN_CENTER] = 0;
             idx--;
         }
     }
