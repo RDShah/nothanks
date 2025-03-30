@@ -1,4 +1,5 @@
 .vscode
+webapp/*
 
 # Prerequisites
 *.d
