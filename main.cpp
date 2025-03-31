@@ -8,17 +8,7 @@
 #include <tuple>
 #include "nothanks.h"
 #include "strats.cpp"
-
-int score_of_hand(u64 hand)
-{
-    hand = hand & ~(hand << 1);
-    int total = 0;
-    for (int i = 3; i <= 35; i++)
-        if ((hand >> i) & 1)
-            total += i;
-
-    return total;
-}
+#include "negamax.cpp"
 
 std::tuple<int, int> evaluate_game(gamestate_t gs)
 {
@@ -97,4 +87,6 @@ int main(int argc, char **argv)
             printf("%s beats %s w.p. %f\n", n0, n1, score);
         }
     }
+
+    return 0;
 }

@@ -7,6 +7,8 @@
 #include <random>
 #include <ranges>
 #include <tuple>
+#include <iostream>
+using namespace std;
 
 /**
  * a hand (a set of cards) is represented as a 64-bit integer
@@ -43,6 +45,16 @@ struct gamestate_t
     int num_cards_left();
 };
 
+struct small_gamestate_t
+{
+    u64 cards[2];
+    uint8_t p1pennies;
+    bool has(int p, int j);
+    void print();
+};
+
+int score_of_hand(u64 hand);
+
 #define NO_THANKS (true)
 #define YES_PLEASE (false)
 
@@ -50,4 +62,4 @@ struct gamestate_t
 #define PLAYER_A (0) 
 #define PLAYER_B (1)
 
-typedef bool Strategy(gamestate_t, int);
+    typedef bool Strategy(gamestate_t, int);
