@@ -55,9 +55,7 @@ int score_of_hand(u64 hand)
 
 void expand(u64 (&cards)[2], u32 hand, uint8_t *deck)
 {
-    // while i is not the highest set bit (since that marks the end)
-    // give the card with value deck[i] to player (hand >> i) & 1
-    for (int i = 0; hand >> (i + 1); i++)
+    for (int i = 0; i < DECK_SIZE; i++)
         cards[(hand >> i) & 1] |= (1ul << deck[i]);
 }
 
