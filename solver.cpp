@@ -38,15 +38,19 @@ typedef std::tuple<u8, u8, u8> u8triplet;
  * but the code represents p1 as 0 and p2 as 1
  */
 
+int A073642(uint64_t n)
+{
+    return __popcount(n & 0xAAAAAAAAAAAAAAAA) +
+           (__popcount(n & 0xCCCCCCCCCCCCCCCC) << 1) +
+           (__popcount(n & 0xF0F0F0F0F0F0F0F0) << 2) +
+           (__popcount(n & 0xFF00FF00FF00FF00) << 3) +
+           (__popcount(n & 0xFFFF0000FFFF0000) << 4) +
+           (__popcount(n & 0xFFFFFFFF00000000) << 5);
+}
+
 int score_of_hand(u64 hand)
 {
-    hand = hand & ~(hand << 1);
-    int total = 0;
-    for (int i = 3; i <= 35; i++)
-        if ((hand >> i) & 1)
-            total += i;
-
-    return total;
+    return A073642(hand & ~(hand << 1));
 }
 
 void expand(u64 (&cards)[2], u32 hand, uint8_t *deck)
