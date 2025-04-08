@@ -7,12 +7,13 @@
 #include <map>
 #include <string>
 #include <fstream>
+#include <cassert>
 using namespace std;
 
-#define DECK_SIZE (10)
+#define DECK_SIZE (24)
 #define BUF_SIZE (1 << (DECK_SIZE + 1))
 #define TOTAL_PENNIES (22)
-#define T (100000)
+#define T (100)
 
 typedef uint64_t u64;
 typedef uint32_t u32;
@@ -72,22 +73,6 @@ void p2search(i8 data[BUF_SIZE], u32 hand, u32 p1gets, u32 p2gets, int p1p)
     }
 }
 
-void p1search(i8 data[BUF_SIZE], u32 hand, u32 p1gets, u32 p2gets, int p1p)
-{
-    for (int delta = 0; delta <= p1p; delta++)
-    {
-        bool p1_wins_if_p2_takes = data[p2gets] <= p1p - delta;
-        bool p1_wins_if_p2_gives = p1p + delta <= 22 ? (data[p1gets] <= p1p + delta) : true;
-
-        bool p1_wins_either_way = p1_wins_if_p2_takes && p1_wins_if_p2_gives;
-        if (p1_wins_either_way)
-        {
-            data[hand] = p1p;
-            break;
-        }
-    }
-}
-
 void fill_dp(i8 data[BUF_SIZE], uint8_t *deck)
 {
     int num_cards = DECK_SIZE;
@@ -98,7 +83,7 @@ void fill_dp(i8 data[BUF_SIZE], uint8_t *deck)
         expand(cards, mask | hand, deck);
         auto diff = score_of_hand(cards[0]) - score_of_hand(cards[1]);
         int p = (diff + TOTAL_PENNIES) / 2 + 1;
-        data[hand | mask] = p <= 0 ? 0 : p > TOTAL_PENNIES + 2 ? TOTAL_PENNIES + 2
+        data[hand | mask] = p <= 0 ? 0 : p > TOTAL_PENNIES + 1 ? TOTAL_PENNIES + 1
                                                                : p;
     }
 
@@ -107,27 +92,16 @@ void fill_dp(i8 data[BUF_SIZE], uint8_t *deck)
         mask >>= 1;
         for (u32 hand = 0; hand < mask; hand++)
         {
-            auto p2gets = hand | mask | (mask << 1);
             auto p1gets = hand | (mask << 1);
-            auto p2move = hand & (mask >> 1);
-
-            if (p2move)
-            {
-                data[hand | mask] = 0;
-                for (int p1p = 0; p1p <= TOTAL_PENNIES; p1p++)
-                    p2search(data, hand | mask, p1gets, p2gets, p1p);
-            }
-            else
-            {
-                data[hand | mask] = TOTAL_PENNIES + 2;
-                for (int p1p = TOTAL_PENNIES; p1p >= 0; p1p--)
-                    p1search(data, hand | mask, p1gets, p2gets, p1p);
-            }
+            auto p2gets = hand | mask | (mask << 1);
+            auto sum = data[p1gets] + data[p2gets];
+            auto p1_to_move = (hand & (mask >> 1)) ? 0 : 1;
+            data[hand | mask] = (sum + p1_to_move) / 2;
         }
     }
 }
 
-void trial(int idx, u8 dt[2 * T], u8 oi[2 * T], u8 ti[4*T], std::mt19937 g)
+void trial(int idx, u8 dt[2 * T], u8 oi[2 * T], u8 ti[4 * T], std::mt19937 g)
 {
     // std::random_device rd;
     // std::mt19937 g(rd());
@@ -149,7 +123,7 @@ void trial(int idx, u8 dt[2 * T], u8 oi[2 * T], u8 ti[4*T], std::mt19937 g)
     i8 *data = new i8[BUF_SIZE];
 
     for (auto i = 0; i < BUF_SIZE; i++)
-        data[i] = TOTAL_PENNIES + 2;
+        data[i] = TOTAL_PENNIES + 1;
     fill_dp(data, deck);
     // for (auto i = 1; i < 8; i++)
     //     printf("%d ", data[i]);
@@ -174,12 +148,13 @@ int main()
 
     for (auto i = 0; i < T; i++)
     {
-        if(i % 1000 == 0) printf("%d\n", i);
+        if (i % 10 == 0)
+            printf("%d\n", i);
         std::mt19937 g(i);
         trial(i, dt, oi, ti, g);
     }
 
-    std::ofstream("data/dt.bin", std::ios::binary).write((char*)dt, 2 * T);
+    std::ofstream("data/dt.bin", std::ios::binary).write((char *)dt, 2 * T);
     std::ofstream("data/oi.bin", std::ios::binary).write((char *)oi, 2 * T);
     std::ofstream("data/ti.bin", std::ios::binary).write((char *)ti, 4 * T);
 }
