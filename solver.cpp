@@ -139,6 +139,7 @@ void trial(int idx, u8 dt[2 * T], u8 oi[2 * T], u8 ti[4 * T], std::mt19937 g)
     ti[4 * idx + 1] = data[5];
     ti[4 * idx + 2] = data[6];
     ti[4 * idx + 3] = data[7];
+    free(data);
 }
 
 int main()
