@@ -59,22 +59,6 @@ void expand(u64 (&cards)[2], u32 hand, uint8_t *deck)
         cards[(hand >> i) & 1] |= (1ul << deck[i]);
 }
 
-void p2search(i8 data[BUF_SIZE], u32 hand, u32 p1gets, u32 p2gets, int p1p)
-{
-    int p2p = TOTAL_PENNIES - p1p;
-    for (int delta = 0; delta <= p2p; delta++)
-    {
-        bool p1_wins_if_p1_takes = data[p1gets] <= p1p + delta;
-        bool p1_wins_if_p1_gives = p1p >= delta ? (data[p2gets] <= p1p - delta) : false;
-        bool p1_loses_either_way = !p1_wins_if_p1_gives && !p1_wins_if_p1_takes;
-        if (p1_loses_either_way)
-        {
-            data[hand] = p1p + 1;
-            break;
-        }
-    }
-}
-
 void fill_dp(i8 data[BUF_SIZE], uint8_t *deck)
 {
     int num_cards = DECK_SIZE;
