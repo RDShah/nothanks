@@ -17,15 +17,19 @@ int gamestate_t::num_cards_left()
     return std::popcount(this->cards[2]);
 }
 
+int A073642(uint64_t n)
+{
+    return __popcount(n & 0xAAAAAAAAAAAAAAAA) +
+           (__popcount(n & 0xCCCCCCCCCCCCCCCC) << 1) +
+           (__popcount(n & 0xF0F0F0F0F0F0F0F0) << 2) +
+           (__popcount(n & 0xFF00FF00FF00FF00) << 3) +
+           (__popcount(n & 0xFFFF0000FFFF0000) << 4) +
+           (__popcount(n & 0xFFFFFFFF00000000) << 5);
+}
+
 int score_of_hand(u64 hand)
 {
-    hand = hand & ~(hand << 1);
-    int total = 0;
-    for (int i = 3; i <= 35; i++)
-        if ((hand >> i) & 1)
-            total += i;
-
-    return total;
+    return A073642(hand & ~(hand << 1));
 }
 
 void gamestate_t::print() {
