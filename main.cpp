@@ -6,16 +6,12 @@
 #include <random>
 #include <ranges>
 #include <tuple>
+#include <sys/resource.h>
 #include "nothanks.h"
 #include "strats.cpp"
 #include "negamax.cpp"
-
-std::tuple<int, int> evaluate_game(gamestate_t gs)
-{
-    int p0score = score_of_hand(gs.cards[0]) - gs.pennies[0];
-    int p1score = score_of_hand(gs.cards[1]) - gs.pennies[1];
-    return std::make_tuple(p0score, p1score);
-}
+#include "minimax.cpp"
+#include "bot.cpp"
 
 std::tuple<int, int> play(Strategy fp0, Strategy fp1)
 {
@@ -24,7 +20,7 @@ std::tuple<int, int> play(Strategy fp0, Strategy fp1)
 
     gamestate_t gs = {
         .cards = {0, 0, 0b111111111111111111111111111111111000ul},
-        .pennies = {11, 11, 0},
+        .pennies = {INITIAL_PENNIES, INITIAL_PENNIES, 0},
     };
 
     std::array<uint8_t, 33> deck;
@@ -37,6 +33,8 @@ std::tuple<int, int> play(Strategy fp0, Strategy fp1)
     while (idx > 8)
     {
         gs.offer = deck[idx];
+        printf("\n");
+        gs.print();
         auto decision = (*(player ? fp1 : fp0))(gs, player);
         if (decision == NO_THANKS && gs.pennies[player])
         {
@@ -57,36 +55,63 @@ std::tuple<int, int> play(Strategy fp0, Strategy fp1)
     return evaluate_game(gs);
 }
 
-float compare(Strategy fp0, Strategy fp1, int games = 10000)
+float compare(Strategy fp0, Strategy fp1, int games = 20)
 {
     int n = games;
     int score = 0;
     while (games--)
     {
+        printf("games left %d\n", games);
         auto [a, b] = play(fp0, fp1);
         score += a < b;
     }
+    // printf("\n");
     return (float)score / n;
 }
 
 int main(int argc, char **argv)
 {
-    // auto [a, b] = play(ratio_3_strat, human);
-    // printf("p1 score: %d\n", a);
-    // printf("p2 score: %d\n", b);
+    const rlim_t kStackSize = 32 * 1024 * 1024; // min stack size = 16 MB
+    struct rlimit rl;
+    int result;
 
-    for (auto [n0, p0] : strats)
+    result = getrlimit(RLIMIT_STACK, &rl);
+    if (result == 0)
     {
-        // auto score = compare(hand_crafted, p0);
-        // printf("hand_crafted beats %s w.p. %f\n", n0, score);
-        // score = compare(hand_crafted2, p0);
-        // printf("hand_crafted2 beats %s w.p. %f\n", n0, score);
-        for (auto [n1, p1] : strats)
+        if (rl.rlim_cur < kStackSize)
         {
-            auto score = compare(p0, p1);
-            printf("%s beats %s w.p. %f\n", n0, n1, score);
+            rl.rlim_cur = kStackSize;
+            result = setrlimit(RLIMIT_STACK, &rl);
+            if (result != 0)
+            {
+                fprintf(stderr, "setrlimit returned result = %d\n", result);
+            }
         }
     }
+
+    // auto [a, b] = play(bot, hand_crafted);
+    auto [a, b] = play(hand_crafted, bot2);
+    printf("p1 score: %d\n", a);
+    printf("p2 score: %d\n", b);
+
+    // auto score = compare(hand_crafted, bot2);
+    // printf("%s beats %s w.p. %f\n", "hand", "bot", score);
+
+    // for (auto [n0, p0] : strats)
+    // {
+    //     float score;
+    //     score = compare(bot, p0);
+    //     printf("bot beats %s w.p. %f\n", n0, score);
+    //     score = compare(p0, bot);
+    //     printf("%s beats bot w.p. %f\n", n0, score);
+    //     // score = compare(hand_crafted2, p0);
+    //     // printf("hand_crafted2 beats %s w.p. %f\n", n0, score);
+    //     // for (auto [n1, p1] : strats)
+    //     // {
+    //     //     auto score = compare(p0, p1);
+    //     //     printf("%s beats %s w.p. %f\n", n0, n1, score);
+    //     // }
+    // }
 
     return 0;
 }

@@ -43,6 +43,8 @@ struct gamestate_t
     bool has(int p, int j);
     void print();
     int num_cards_left();
+
+    bool operator==(const gamestate_t &other) const;
 };
 
 struct small_gamestate_t
@@ -54,6 +56,7 @@ struct small_gamestate_t
 };
 
 int score_of_hand(u64 hand);
+std::tuple<int, int> evaluate_game(gamestate_t gs);
 
 #define NO_THANKS (true)
 #define YES_PLEASE (false)
@@ -62,4 +65,6 @@ int score_of_hand(u64 hand);
 #define PLAYER_A (0) 
 #define PLAYER_B (1)
 
-    typedef bool Strategy(gamestate_t, int);
+typedef bool Strategy(gamestate_t, int);
+
+#define INITIAL_PENNIES (11)
