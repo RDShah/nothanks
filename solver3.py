@@ -2,7 +2,9 @@ import functools
 import numpy as np
 import random
 import time
-from tqdm import tqdm
+from tqdm import tqdm, trange
+
+from ml import *
 
 def score_of_hand(hand):
     hand = hand & ~(hand << 1)
@@ -35,20 +37,27 @@ def _p1_win_row(hand1, hand2):
     out[23] = 1
     return out
 
-
-@functools.cache
+cache = dict()
+# @functools.cache
 def prob_p1_win_row(hand1, hand2):
+    hand = (hand1, hand2)
+    if hand in cache: return cache[hand]
+
     union = hand1 | hand2
     popcount = union.bit_count()
     if popcount == 24:
-        return _p1_win_row(hand1, hand2)
+        out = _p1_win_row(hand1, hand2)
+        cache[hand] = out
+        return out
 
     sum_prob = np.zeros(24, dtype=np.float32)
     for offer in range(3, 36):
         if ((union >> offer) & 1) == 0:
             sum_prob += prob_p1_win_row_offer(hand1, hand2, offer)
 
-    return sum_prob / (33 - popcount)
+    out = sum_prob / (33 - popcount)
+    cache[hand] = out
+    return out
 
 def prob_p1_win_row_offer(hand1, hand2, offer):
     p2_refuses = prob_p1_win_row(hand1 | (1 << offer), hand2)
@@ -63,25 +72,63 @@ def prob_p1_win_row_offer(hand1, hand2, offer):
 
     return np.maximum(out, p2_refuses)
 
+saved_models = list(range(2, 24, 2))
+models = {str(num_cards): load_model(num_cards) for num_cards in saved_models}
 
+def generate_dataset(seed, num_cards, N=1000):
+    print(f"Seed {seed}")
+    x = np.empty((N, 2), dtype=np.uint64)
+    y = np.empty((N, 23), dtype=np.float32)
+    random.seed(dataset_number)
+    for i in trange(N):
+        hand = generate_hand(num_cards)
+        x[i] = hand
+        cache.clear()
+        for model_label in saved_models:
+            if num_cards < model_label:
+                prepopulate_cache_from_hand(models[str(model_label)], model_label, hand)
+                break
+
+        y[i] = prob_p1_win_row(*hand)[:23]
+        # prob_p1_win_row.cache_clear()
+
+    np.save(f'data/x_data_d{num_cards}_{dataset_number}.npy', x)
+    np.save(f'data/y_data_d{num_cards}_{dataset_number}.npy', y)
+
+def prepopulate_cache(model, hands):
+    y = model_predict_hands(model, hands)
+    for i, hand in enumerate(hands):
+        cache[hand] = y[i]
+
+def generate_future_hands(hand1, hand2, buf, depth):
+    if depth == 0:
+        return buf.append((hand1, hand2))
+    
+    union = hand1 | hand2
+    for offer in range(3, 36):
+        if ((union >> offer) & 1) == 0:
+            generate_future_hands(hand1 | (1 << offer), hand2, buf, depth - 1)
+            generate_future_hands(hand2 | (1 << offer), hand1, buf, depth - 1)
+
+def prepopulate_cache_from_hand(model, model_depth, hand):
+    # print('prepopulating depth', model_depth, bin(hand[0]), bin(hand[1]))
+    union = hand[0] | hand[1]
+    hands = []
+    generate_future_hands(*hand, hands, model_depth - union.bit_count())
+    # print('example hand', bin(hands[0][0]), bin(hands[0][1]) )
+    prepopulate_cache(model, hands)
+    
 if __name__ == "__main__":
-    N = 1000
-    num_cards = 21
-    dataset_number = 0
-    while 1:
-        dataset_number += 1
-        print(f"Dataset #{dataset_number}")
-        x = np.empty((N, 2), dtype=np.uint64)
-        y = np.empty((N, 23), dtype=np.float32)
-        random.seed(dataset_number)
-        for i in tqdm(range(N)):
-            hand = generate_hand(num_cards)
-            x[i] = hand
-            y[i] = prob_p1_win_row(*hand)[:23]
-            prob_p1_win_row.cache_clear()
+    # num_cards = 21
+    # dataset_number = -1
+    # while 1:
+    #     dataset_number += 1
+    #     generate_dataset(dataset_number, num_cards, 10000)
 
-        np.save(f'data/x_data_d{num_cards}_{dataset_number}.npy', x)
-        np.save(f'data/y_data_d{num_cards}_{dataset_number}.npy', y)
+    for num_cards in [19, 17]:
+        print('num_cards', num_cards)
+        for dataset_number in range(11):
+            generate_dataset(dataset_number, num_cards, 10000)
 
     # N = 10
     # hands = [generate_hand(21) for _ in range(N)]
